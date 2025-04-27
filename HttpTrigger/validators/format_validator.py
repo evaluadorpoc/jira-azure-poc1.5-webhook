@@ -2,27 +2,28 @@ from shared.logger_config import logger
 
 def validate_format(issue_data: dict) -> dict:
     """
-    Validates if the 'summary' field of the issue starts with 'Como '.
-    Returns a dict with 'passed' (bool) and 'details' (str).
+    Valida si el campo 'description' comienza con 'Como '.
+    Retorna un diccionario con 'passed' (bool) y 'details' (str).
     """
-    summary = issue_data.get('summary', '')
 
-    if not summary:
-        logger.warning("Validation 'format' failed: 'summary' field is missing or empty.")
+    description = issue_data.get('description', '').strip()
+
+    if not description:
+        logger.warning("⚠️ Validación fallida: 'description' está vacío o no existe.")
         return {
             "passed": False,
-            "details": "Missing or empty summary field."
+            "details": "Missing or empty 'description' field."
         }
 
-    if summary.startswith("Como "):
-        logger.info("Validation 'format' passed: summary starts correctly.")
+    if description.startswith("Como "):
+        logger.info("✅ Validación exitosa: 'description' inicia correctamente con 'Como '.")
         return {
             "passed": True,
-            "details": "Summary starts with 'Como '."
+            "details": "Description starts correctly with 'Como '."
         }
     else:
-        logger.warning("Validation 'format' failed: summary does not start with 'Como '.")
+        logger.warning("⚠️ Validación fallida: 'description' no inicia con 'Como '.")
         return {
             "passed": False,
-            "details": "Summary does not start with 'Como '."
+            "details": "Description does not start with 'Como '."
         }
