@@ -6,4 +6,7 @@ import azure.functions as func
 # 🛠️ Agregamos HttpTrigger al sys.path
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from .main import process_request as main 
+from main import process_request
+
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    return process_request(req)

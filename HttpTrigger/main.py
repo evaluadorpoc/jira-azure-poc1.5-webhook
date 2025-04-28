@@ -1,6 +1,6 @@
 import azure.functions as func
 from shared.logger_config import logger
-from validators.orchestrator import orchestrate_validations
+from orchestrator.processor import process_jira_operations
 
 def process_request(req: func.HttpRequest) -> func.HttpResponse:
     logger.info("✅ Nueva solicitud HTTP recibida.")
@@ -16,22 +16,25 @@ def process_request(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
+    # 🎯 Validar campos obligatorios
+    issue_key = req_body.get('issueKey')
     description = req_body.get('description', '').strip()
 
-    if not description:
-        logger.warning("⚠️ 'description' está vacío o no fue proporcionado.")
+    if not issue_key or not description:
+        logger.warning("⚠️ Faltan campos 'issueKey' o 'description'.")
         return func.HttpResponse(
-            body='{"success": false, "message": "Field \'description\' is missing or empty."}',
+            body='{"success": false, "message": "Missing issueKey or description."}',
             status_code=400,
             mimetype="application/json"
         )
 
-    validation_results = orchestrate_validations({"description": description})
+    # 🎯 Procesar operaciones Jira
+    jira_result = process_jira_operations(issue_key, description)
 
     response_message = {
         "success": True,
-        "message": "Request processed successfully.",
-        "validation_results": validation_results,
+        "message": "Request processed and Jira updated.",
+        "jira_result": jira_result,
         "data_received": req_body
     }
 
