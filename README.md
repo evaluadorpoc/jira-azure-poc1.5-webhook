@@ -21,13 +21,17 @@ jira_azure_poc_hu/
 ├── HttpTrigger/
 │   ├── __init__.py         # Dispatcher de la Azure Function
 │   ├── main.py             # Lógica principal del procesamiento HTTP
-│   ├── shared/             # Utilitarios compartidos (e.g., configuración de logger)
-│   └── validators/         # Módulos de validación (e.g., format_validator)
+│   ├── orchestrator.py     # Orquestador de validaciones
+│   ├── shared/             # Utilitarios compartidos (e.g., logger)
+│   └── validators/         # Validadores individuales
+│       ├── __init__.py
+│       ├── format_validator.py
+│       └── length_validator.py
 ├── requirements.txt        # Dependencias Python
-├── host.json               # Configuración de host para Azure Functions
-├── local.settings.json     # Variables de entorno para ejecución local
-└── .github/workflows/      
-    └── main_jira-azure-validator.yml  # Workflows de CI/CD para GitHub Actions
+├── host.json               # Configuración de host
+├── local.settings.json     # Variables de entorno local
+└── .github/workflows/
+    └── main_jira-azure-validator.yml  # CI/CD GitHub Actions
 ```
 
 ---
@@ -38,58 +42,70 @@ jira_azure_poc_hu/
 - **Entrada esperada**:
 ```json
 {
-  "summary": "Como usuario quiero poder registrarme fácilmente"
+  "description": "Como usuario quiero registrarme rápidamente"
 }
 ```
 - **Validaciones actuales**:
-  - Verifica que el `summary` comience con la palabra **"Como "**.
-  - Retorna un objeto JSON con el resultado de la validación.
-
+  - Verificar que `description` comience con **"Como "**.
+  - Verificar que `description` tenga **mínimo 10 caracteres**.
 - **Respuesta ejemplo**:
 ```json
 {
-  "message": "Request received successfully.",
-  "format_validation": {
-    "passed": true,
-    "details": "Summary starts with 'Como '."
+  "success": true,
+  "message": "Request processed successfully.",
+  "validation_results": {
+    "format_validation": {
+      "passed": true,
+      "details": "Description starts correctly with 'Como '."
+    },
+    "length_validation": {
+      "passed": true,
+      "details": "Description length is sufficient (>= 10)."
+    }
   },
   "data_received": {
-    "summary": "Como usuario quiero poder registrarme fácilmente"
+    "description": "Como usuario quiero registrarme rápidamente"
   }
 }
 ```
 
 ---
 
-## 🛠️ Cómo desplegar cambios
+## 📈 Flujo de Procesamiento
 
-Cada vez que se hace `push` o `merge` en la rama `main`:
-- Se ejecuta automáticamente un flujo de trabajo GitHub Actions.
-- El flujo despliega los cambios en la Azure Function llamada `jira-azure-validator`.
-
----
-
-## 📈 Estado Actual
-
-| Componente             | Estado           |
-|-------------------------|------------------|
-| Azure Function App      | ✅ Creada y activa |
-| CI/CD GitHub Actions    | ✅ Configurado    |
-| Application Insights    | ✅ Configurado    |
-| Storage Account         | ✅ Configurado    |
+```mermaid
+flowchart TD
+    A[HTTP Request: POST /api/HttpTrigger] --> B[Validar existencia de 'description']
+    B -->|Si existe| C[Orquestador llama validadores]
+    C --> D1[Validar formato: empieza con 'Como ']
+    C --> D2[Validar longitud: mínimo 10 caracteres]
+    D1 --> E[Agregar resultados de validaciones]
+    D2 --> E
+    E --> F[Devolver respuesta 200 OK]
+    B -->|No existe| G[Devolver error 400: 'description' faltante]
+```
 
 ---
 
-## 📌 Notas
+## 🔧 Despliegue y CI/CD
 
-- El entorno de ejecución en Azure Functions es **Linux** debido al uso del plan gratuito de consumo.
-- El desarrollo local se puede realizar utilizando **Visual Studio Code** y **Azure Functions Core Tools**.
+Cada vez que haces `push` en la rama `main`:
+- Se ejecuta automáticamente un **GitHub Action Workflow**.
+- Se despliega directamente a la Azure Function configurada.
+
+**Notas**:
+- El entorno de ejecución en Azure Functions es **Linux** (plan gratuito de consumo).
+- Para desarrollo local:
+  - Visual Studio Code
+  - Azure Functions Core Tools
+
+El proyecto está diseñado para ser **escalable, robusto y preparado para validaciones futuras**.
 
 ---
 
-## 🚀 Futuras Mejoras
+## 📌 Futuras Mejoras
 
-- Validar otros campos de la historia de usuario (por ejemplo: descripción, aceptación, etc).
+- Validar más campos de la historia de usuario (por ejemplo: criterios de aceptación).
 - Integrar validaciones semánticas usando **Azure AI Services**.
 - Integrar flujos directos de Jira a Azure mediante **webhooks**.
-- Expansión a más validaciones contextuales según criterios de calidad ágil.
+- Agregar validaciones condicionales basadas en tipo de historia.
