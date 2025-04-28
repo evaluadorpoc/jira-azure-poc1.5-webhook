@@ -1,6 +1,6 @@
 import azure.functions as func
 from shared.logger_config import logger
-from validators import validate_format
+from validators.orchestrator import orchestrate_validations
 
 def process_request(req: func.HttpRequest) -> func.HttpResponse:
     logger.info("✅ Nueva solicitud HTTP recibida.")
@@ -16,7 +16,6 @@ def process_request(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # 🎯 Validamos si viene el campo description
     description = req_body.get('description', '').strip()
 
     if not description:
@@ -27,16 +26,12 @@ def process_request(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # 🎯 Llamamos al validador de formato
-    format_result = validate_format({"description": description})
+    validation_results = orchestrate_validations({"description": description})
 
-    # 🎯 Respuesta final
     response_message = {
         "success": True,
         "message": "Request processed successfully.",
-        "validation_results": {
-            "format_validation": format_result
-        },
+        "validation_results": validation_results,
         "data_received": req_body
     }
 

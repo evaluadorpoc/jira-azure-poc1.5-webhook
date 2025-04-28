@@ -1,11 +1,9 @@
 from shared.logger_config import logger
 
-def validate_format(issue_data: dict) -> dict:
+def validate_description_format(issue_data: dict) -> dict:
     """
     Valida si el campo 'description' comienza con 'Como '.
-    Retorna un diccionario con 'passed' (bool) y 'details' (str).
     """
-
     description = issue_data.get('description', '').strip()
 
     if not description:
