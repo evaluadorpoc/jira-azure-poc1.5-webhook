@@ -40,7 +40,7 @@ jobs:
           mkdir deploy
           cp requirements.txt host.json .funcignore -t deploy/
           # copiar todos los contenidos de HttpTrigger
-          cp -r HttpTrigger/* deploy/
+          cp -r HttpTrigger deploy/
           cd deploy
           zip -r ../release.zip .
 
