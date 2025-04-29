@@ -3,6 +3,21 @@
 Todas las modificaciones relevantes de este proyecto serán documentadas aquí, siguiendo buenas prácticas de documentación de versiones.
 
 ---
+## [1.0.0] - 2025-04-29
+### Added
+- CI/CD funcional con GitHub Actions para Azure Functions Python 3.11.
+- Paquetes Python se instalan manualmente en `.python_packages/lib/site-packages`.
+
+### Changed
+- Se desactiva `remote-build` y `scm-do-build-during-deployment` en favor del empaquetado manual.
+
+### Fixed
+- Error 500 causado por falta de dependencias (`requests`, etc.) en despliegues anteriores.
+
+### Notes
+- Esta configuración será la base para futuras funciones Azure en este repositorio.
+- El archivo `main_jira-azure-validator.yml` contiene la lógica de build/deploy validada.
+
 
 ## [0.1.0] - 2025-04-28
 
