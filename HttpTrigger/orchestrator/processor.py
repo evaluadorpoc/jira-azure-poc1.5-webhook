@@ -23,8 +23,7 @@ def process_jira_operations(issue_key: str, description: str):
     comment_added = jira.add_comment(issue_key, comment_message)
 
     # 🎯 Intentar actualizar el campo personalizado
-    field_updated = jira.update_custom_field(issue_key, character_count)
-
+    field_updated = jira.update_custom_field(issue_key, settings.CUSTOM_FIELDS["character_count"], character_count)
 
     # 🎯 Resultado
     result = {
