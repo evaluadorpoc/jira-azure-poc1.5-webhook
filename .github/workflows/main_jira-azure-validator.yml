@@ -1,3 +1,7 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure Functions: https://aka.ms/python-webapps-actions
+
 name: Build and deploy Python project to Azure Function App - jira-azure-validator
 
 on:
@@ -7,48 +11,62 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: '3.11'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+  PYTHON_VERSION: '3.11' # set this to the python version to use (supports 3.6, 3.7, 3.8, 3.9, 3.10, 3.11)
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read # Required for actions/checkout
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python version
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Prepare deployment package
+      - name: Create and start virtual environment
         run: |
-          mkdir -p deploy/HttpTrigger
-          cp requirements.txt host.json .funcignore -t deploy/
-          cp -r HttpTrigger/* deploy/HttpTrigger/
+          python -m venv venv
+          source venv/bin/activate
 
-      - name: Upload artifact
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Construcción correcta del ZIP
+      - name: Zip artifact for deployment
+        run: |
+          mkdir deploy
+          cp requirements.txt host.json .funcignore -t deploy/
+          cp -r HttpTrigger/* deploy/
+          cd deploy
+          zip -r ../release.zip .  # IMPORTANTE: hacer el zip desde dentro de deploy/
+
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: deploy/
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write
+      id-token: write # Required for requesting the JWT
       contents: read
 
     steps:
-      - name: Download artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: python-app
-          path: package/
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -57,9 +75,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0411E2EDB6BC40ECB10E3B88882800DA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4077DFA01ACB49F89F1C5CA6A4B441A7 }}
 
-      - name: Deploy to Azure Functions
+      - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
+        id: deploy-to-function
         with:
           app-name: 'jira-azure-validator'
-          package: package
+          slot-name: 'Production'
+          package: .
           scm-do-build-during-deployment: true
