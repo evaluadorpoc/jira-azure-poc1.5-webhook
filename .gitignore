@@ -12,9 +12,10 @@ venv/
 .local.settings.json
 
 # VSCode
-.vscode/
 
 # Others
 *.env
 .DS_Store
 Thumbs.db
+
+.python_packages
