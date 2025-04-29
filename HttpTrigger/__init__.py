@@ -8,10 +8,10 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from main import process_request
 
-async def main(req: func.HttpRequest) -> func.HttpResponse:
+def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("🔵 Nueva solicitud recibida.")
     try:
-        response = await process_request(req)
+        response = process_request(req)
         logging.info("🟢 Solicitud procesada exitosamente.")
         return response
     except Exception as e:
