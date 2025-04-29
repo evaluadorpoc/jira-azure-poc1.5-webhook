@@ -1,15 +1,11 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
-
-name: Build and deploy Python project to Azure Function App - jira-azure-validator
-
+name: Build and deploy Python project to Azure Function App (manual zip) - jira-azure-validator
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-  workflow_dispatch:
-
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
   PYTHON_VERSION: '3.11'
 
 jobs:
@@ -22,28 +18,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python version
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Create and start virtual environment
+      - name: Install dependencies into package folder
         run: |
-          python -m venv venv
-          source venv/bin/activate
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
 
       - name: Prepare artifact structure
         run: |
           mkdir deploy
           cp requirements.txt host.json .funcignore -t deploy/
           cp -r HttpTrigger deploy/
+          cp -r .python_packages deploy/
           cd deploy
           zip -r ../release.zip .
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
@@ -57,12 +50,12 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
-      - name: Unzip artifact for deployment
+      - name: Unzip artifact
         run: unzip release.zip
 
       - name: Login to Azure
@@ -72,12 +65,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0411E2EDB6BC40ECB10E3B88882800DA }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4077DFA01ACB49F89F1C5CA6A4B441A7 }}
 
-      - name: 'Deploy to Azure Functions'
+      - name: Deploy to Azure Functions (manual zip)
         uses: Azure/functions-action@v1
-        id: deploy-to-function
         with:
           app-name: 'jira-azure-validator'
           package: release.zip
-          scm-do-build-during-deployment: true
-          enable-oryx-build: true       # <- habilita instalación automática de dependencias
-          remote-build: true            # <- fuerza compilación del lado de Azure
+          scm-do-build-during-deployment: false
+          enable-oryx-build: false
