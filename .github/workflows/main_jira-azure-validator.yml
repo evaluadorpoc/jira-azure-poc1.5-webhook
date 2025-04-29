@@ -38,12 +38,11 @@ jobs:
         run: pip install -r requirements.txt
 
       # Optional: Add step to run tests here
-
       - name: Zip artifact for deployment
-        run:  |
+        run: |
           mkdir deploy
           cp requirements.txt host.json .funcignore -t deploy/
-          cp -r HttpTrigger/ deploy/
+          cp -r HttpTrigger/* deploy/  # Copia el contenido del trigger, no la carpeta
           cd deploy
           zip -r ../release.zip .
 
