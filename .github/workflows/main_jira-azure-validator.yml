@@ -78,6 +78,6 @@ jobs:
         id: deploy-to-function
         with:
           app-name: 'jira-azure-validator'
-          slot-name: 'Production'
-          package: .
+          package: release.zip
           scm-do-build-during-deployment: true
+          remote-build: true
