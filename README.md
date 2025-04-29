@@ -1,6 +1,6 @@
 ## 🧪 PoC 1.5 – Escucha activa desde Jira
 
-### 🎯 Objetivo
+### 🎯 Objetivo:
 
 Implementar un flujo automatizado que permita **escuchar eventos de Jira** (creación y edición de historias de usuario) y, mediante una Azure Function, procesar el contenido del campo `description`, evaluarlo y registrar resultados directamente en el issue.
 
