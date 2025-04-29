@@ -1,111 +1,57 @@
-# 🚀 PoC Azure - Integración Jira Azure IA
+## 🧪 PoC 1.5 – Escucha activa desde Jira
 
-Prueba de concepto para validar y desplegar funciones serverless en Azure Functions, utilizando GitHub Actions para CI/CD automático.
+### 🎯 Objetivo
 
----
-
-## 🛠️ Stack Tecnológico
-
-- **Backend sin servidor**: Azure Functions (Plan de Consumo, Linux)
-- **CI/CD automático**: GitHub Actions conectado a Azure para despliegue continuo.
-- **Lenguaje**: Python 3.11
-- **Framework**: Azure Functions Python Library
-- **Logs**: Integrados con Application Insights.
+Implementar un flujo automatizado que permita **escuchar eventos de Jira** (creación y edición de historias de usuario) y, mediante una Azure Function, procesar el contenido del campo `description`, evaluarlo y registrar resultados directamente en el issue.
 
 ---
 
-## 📂 Estructura del Proyecto
+### 🧠 Descripción funcional
 
-```plaintext
-jira_azure_poc_hu/
-├── HttpTrigger/
-│   ├── __init__.py         # Dispatcher de la Azure Function
-│   ├── main.py             # Lógica principal del procesamiento HTTP
-│   ├── orchestrator.py     # Orquestador de validaciones
-│   ├── shared/             # Utilitarios compartidos (e.g., logger)
-│   └── validators/         # Validadores individuales
-│       ├── __init__.py
-│       ├── format_validator.py
-│       └── length_validator.py
-├── requirements.txt        # Dependencias Python
-├── host.json               # Configuración de host
-├── local.settings.json     # Variables de entorno local
-└── .github/workflows/
-    └── main_jira-azure-validator.yml  # CI/CD GitHub Actions
-```
+Cuando se crea o actualiza un issue en Jira:
 
----
+1. Se dispara un **webhook** configurado para los eventos `issue_created` y `issue_updated`.
+2. El webhook realiza una llamada HTTP `POST` a la Azure Function con el siguiente cuerpo JSON mínimo:
 
-## ✨ Funcionalidad Principal
-
-- **Endpoint**: `POST /api/HttpTrigger`
-- **Entrada esperada**:
 ```json
 {
-  "description": "Como usuario quiero registrarme rápidamente"
-}
-```
-- **Validaciones actuales**:
-  - Verificar que `description` comience con **"Como "**.
-  - Verificar que `description` tenga **mínimo 10 caracteres**.
-- **Respuesta ejemplo**:
-```json
-{
-  "success": true,
-  "message": "Request processed successfully.",
-  "validation_results": {
-    "format_validation": {
-      "passed": true,
-      "details": "Description starts correctly with 'Como '."
-    },
-    "length_validation": {
-      "passed": true,
-      "details": "Description length is sufficient (>= 10)."
-    }
-  },
-  "data_received": {
-    "description": "Como usuario quiero registrarme rápidamente"
-  }
+  "issueKey": "ABC-123",
+  "description": "Como usuario quiero registrarme para poder recibir promociones"
 }
 ```
 
----
-
-## 📈 Flujo de Procesamiento
-
-```mermaid
-flowchart TD
-    A[HTTP Request: POST /api/HttpTrigger] --> B[Validar existencia de 'description']
-    B -->|Si existe| C[Orquestador llama validadores]
-    C --> D1[Validar formato: empieza con 'Como ']
-    C --> D2[Validar longitud: mínimo 10 caracteres]
-    D1 --> E[Agregar resultados de validaciones]
-    D2 --> E
-    E --> F[Devolver respuesta 200 OK]
-    B -->|No existe| G[Devolver error 400: 'description' faltante]
-```
+3. La Azure Function ejecuta las siguientes tareas:
+   - Calcula la **cantidad de caracteres** del campo `description`.
+   - Publica un **comentario** en el issue con el mensaje:
+     > 📝 Esta historia tiene 58 caracteres en la descripción.
+   - Actualiza el campo personalizado `customfield_10038` con el valor numérico `58`.
 
 ---
 
-## 🔧 Despliegue y CI/CD
+### ⚙️ Requisitos técnicos
 
-Cada vez que haces `push` en la rama `main`:
-- Se ejecuta automáticamente un **GitHub Action Workflow**.
-- Se despliega directamente a la Azure Function configurada.
-
-**Notas**:
-- El entorno de ejecución en Azure Functions es **Linux** (plan gratuito de consumo).
-- Para desarrollo local:
-  - Visual Studio Code
-  - Azure Functions Core Tools
-
-El proyecto está diseñado para ser **escalable, robusto y preparado para validaciones futuras**.
+- **Webhook en Jira configurado** con los eventos:
+  - `issue_created`
+  - `issue_updated`
+- **Payload JSON** con al menos:
+  - `"issueKey"` (clave del ticket)
+  - `"description"` (contenido del campo)
+- **Azure Function activa** y publicada con endpoint público.
+- **Campo personalizado creado en Jira** (`customfield_10038`) de tipo número.
+- Permisos adecuados en el API Token de Jira:
+  - Crear comentarios
+  - Editar campos
 
 ---
 
-## 📌 Futuras Mejoras
+### 📌 Propósito estratégico
 
-- Validar más campos de la historia de usuario (por ejemplo: criterios de aceptación).
-- Integrar validaciones semánticas usando **Azure AI Services**.
-- Integrar flujos directos de Jira a Azure mediante **webhooks**.
-- Agregar validaciones condicionales basadas en tipo de historia.
+Esta prueba de concepto permite:
+
+- Automatizar validaciones iniciales del contenido de historias de usuario.
+- Establecer una **trazabilidad estructurada** a través de comentarios y campos.
+- Habilitar una base operativa para futuras mejoras basadas en **inteligencia artificial**, como generación de recomendaciones o detección de calidad de historias.
+
+---
+
+🔄 Esta PoC se considera parte de la transición hacia modelos de calidad asistida en backlog y control ágil automatizado.

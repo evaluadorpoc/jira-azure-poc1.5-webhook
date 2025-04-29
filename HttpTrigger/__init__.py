@@ -20,3 +20,4 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "Error interno en el servidor. Revisar logs.",
             status_code=500
         )
+    
