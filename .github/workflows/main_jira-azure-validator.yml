@@ -80,4 +80,5 @@ jobs:
           app-name: 'jira-azure-validator'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          scm-do-build-during-deployment: true
           
