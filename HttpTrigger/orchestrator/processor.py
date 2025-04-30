@@ -1,31 +1,42 @@
 # orchestrator/processor.py
+
 from jira_connector.api_client import JiraClient
 from shared.logger_config import logger
 import shared.settings as settings
 
-def process_jira_operations(issue_key: str, description: str):
+
+def process_jira_operations(issue_key, description, custom_fields=None, raw_fields=None):
     """
-    Procesa las operaciones de Jira:
-    - Cuenta caracteres del description
-    - Agrega comentario
-    - Actualiza campo personalizado
+    Procesa operaciones con Jira de forma escalable:
+    - Cuenta caracteres del campo 'description'.
+    - Agrega un comentario automático.
+    - Actualiza múltiples campos personalizados según la configuración.
     """
     jira = JiraClient()
 
-    # 🎯 Contar caracteres
+    # Asegurar que custom_fields esté definido
+    custom_fields = custom_fields or {}
+
+    # 🎯 Lógica 1: calcular longitud de descripción
     character_count = len(description)
     logger.info(f"✍️ Descripción tiene {character_count} caracteres.")
 
-    # 🎯 Crear mensaje para comentario
+    # 🎯 Componer comentario automático
     comment_message = f"📝 Esta historia tiene {character_count} caracteres en la descripción."
 
-    # 🎯 Intentar agregar comentario
+    # 🎯 Ejecutar acciones en Jira
     comment_added = jira.add_comment(issue_key, comment_message)
 
-    # 🎯 Intentar actualizar el campo personalizado
-    field_updated = jira.update_custom_field(issue_key, settings.CUSTOM_FIELDS["character_count"], character_count)
+    # 🎯 Lógica 2: actualizar campo personalizado
+    field_key = settings.CUSTOM_FIELDS.get("character_count")
+    field_updated = jira.update_custom_field(issue_key, field_key, character_count)
 
-    # 🎯 Resultado
+    # 🧱 [Escalable] Aquí podrías procesar otros campos usando custom_fields, por ejemplo:
+    # for field_name, field_value in custom_fields.items():
+    #     field_id = settings.CUSTOM_FIELDS.get(field_name)
+    #     if field_id:
+    #         jira.update_custom_field(issue_key, field_id, field_value)
+
     result = {
         "comment_added": comment_added,
         "field_updated": field_updated,
