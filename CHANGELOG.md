@@ -1,18 +1,36 @@
-## [POC 1.5] Escucha de cambios desde Jira hacia Azure Function - CI/CD habilitado
+# 📘 CHANGELOG - Proyecto Jira Azure Validator
 
-### Añadido
-- Nueva Azure Function `jira-azure-validator` diseñada para recibir eventos desde Jira (como edición o creación de issues).
-- Implementación de webhook para invocar la función desde Jira con payloads personalizados.
+## 🧪 PoC 1.5 – Integración Webhook Jira + Azure Function (29/04/2025)
 
-### Corregido
-- Error de autenticación con `azure/login@v2` en GitHub Actions: Se registró una aplicación en Azure Active Directory (`github-cicd-deploy`) y se configuró autenticación federada.
-- Asignación del rol "Colaborador" a la aplicación para habilitar despliegue a través de CI/CD.
+### 🚀 Nuevas funcionalidades implementadas
 
-### Mejoras
-- Pipeline actualizado para empaquetado manual de dependencias (`.python_packages`) en caso de que `oryx` falle.
-- Separación de repositorio (`jira-azure-poc1.5-webhook`) para mantener trazabilidad por POC.
+- ✅ **Azure Function 2nd Gen desplegada con CI/CD**:
+  - GitHub Actions con autenticación federada OIDC.
+  - Despliegue manual ZIP funcional con `functions-action@v1`.
+
+- 🔗 **Integración real-time con Jira Software Cloud**:
+  - Webhook `issue.updated` registrado y funcionando correctamente.
+  - Eventos entrantes parseados desde payload original de Jira.
+
+- 🧠 **Control de cambios finos (nivel de campo)**:
+  - Se filtran eventos **solo cuando cambia el campo `description`**, evitando ejecuciones innecesarias.
+
+- 📝 **Automatización en Jira**:
+  - Comentario automático con el número de caracteres del campo `description`.
+  - Actualización del campo personalizado `customfield_10038` con el conteo de caracteres.
+
+- 🛠️ **Código preparado para escalar**:
+  - Refactorización de `process_request()` y `process_jira_operations()` para aceptar múltiples campos (`custom_fields`, `raw_fields`).
+  - Arquitectura limpia y modular (HttpTrigger → Orchestrator → JiraClient).
+  
+### 📊 Resultados verificados
+- ✔️ Solicitudes exitosas en Azure Function con status HTTP 200.
+- 🧪 Pruebas reales en Jira (proyecto BTS), resultado visual validado:
+  - Comentarios agregados correctamente.
+  - Campo "contador description" actualizado en tiempo real.
+- 🎯 Reducción de invocaciones innecesarias al validar cambios reales por `changelog`.
 
 ---
 
-📅 Fecha: 2025-04-29  
-👤 Responsable: @paulsanchez  
+### 🧩 Próximo paso: PoC 2.0
+> Comenzaremos con la integración de **Azure Cognitive Services** para analizar semánticamente la historia y generar una evaluación de calidad del texto. 
