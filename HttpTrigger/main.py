@@ -1,10 +1,13 @@
+# HttpTrigger/main.py
+
 import azure.functions as func
 from shared.logger_config import logger
 from orchestrator.processor import process_jira_operations
+from shared.jira_change_utils import field_was_changed
 
 def process_request(req: func.HttpRequest) -> func.HttpResponse:
     logger.info("✅ Nueva solicitud HTTP recibida.")
-    
+
     try:
         req_body = req.get_json()
         logger.info(f"📥 Cuerpo recibido: {req_body}")
@@ -16,21 +19,18 @@ def process_request(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    # ✅ Verificar si el campo 'description' fue modificado
+    issue_key = req_body.get("issue", {}).get("key")
+    description = req_body.get("issue", {}).get("fields", {}).get("description", "").strip()
     changelog = req_body.get("changelog", {})
-    changed_fields = [item.get("field") for item in changelog.get("items", [])]
-    if "description" not in changed_fields:
-        logger.warning("⚠️ Cambio ignorado: 'description' no fue modificado.")
+
+    # 🛑 Si no se modificó 'description', no hacemos nada
+    if not field_was_changed(changelog, "description"):
+        logger.info("🛑 Cambio ignorado: no se modificó el campo 'description'.")
         return func.HttpResponse(
-            body='{"success": false, "message": "Ignored: Description not updated."}',
+            body='{"success": false, "message": "Field `description` was not changed."}',
             status_code=200,
             mimetype="application/json"
         )
-
-    # ✅ Extraer campos necesarios
-    issue = req_body.get("issue", {})
-    issue_key = issue.get("key")
-    description = issue.get("fields", {}).get("description", "")
 
     if not issue_key or not description:
         logger.warning("⚠️ Faltan campos 'issueKey' o 'description'.")
@@ -40,7 +40,8 @@ def process_request(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json"
         )
 
-    jira_result = process_jira_operations(issue_key, description)
+    # ✅ Procesar operación Jira
+    jira_result = process_jira_operations(issue_key, description, {}, req_body.get("issue", {}).get("fields", {}))
 
     response_message = {
         "success": True,
