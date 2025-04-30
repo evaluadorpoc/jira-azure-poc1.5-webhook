@@ -40,9 +40,7 @@ def process_request(req: func.HttpRequest) -> func.HttpResponse:
     # 🧠 Lógica delegada al orquestador
     jira_result = process_jira_operations(
         extracted_data["issueKey"],
-        extracted_data["description"],
-        extracted_data["custom_fields"],
-        extracted_data["raw_fields"]
+        extracted_data["description"]
     )
 
     response_message = {
