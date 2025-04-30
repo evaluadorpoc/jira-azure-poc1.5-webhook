@@ -1,17 +1,18 @@
-## [PoC 1.5] - 2025-04-29
+## [POC 1.5] Escucha de cambios desde Jira hacia Azure Function - CI/CD habilitado
 
-### Added
-- Configuración inicial de la PoC 1.5 para escuchar eventos `issue created` e `issue updated` desde Jira.
-- Recepción y procesamiento de los campos `description`, `issueKey` y `customfield_10038` mediante Azure Functions.
-- Funcionalidad para contar caracteres de la descripción y registrar el resultado como comentario y valor del custom field.
+### Añadido
+- Nueva Azure Function `jira-azure-validator` diseñada para recibir eventos desde Jira (como edición o creación de issues).
+- Implementación de webhook para invocar la función desde Jira con payloads personalizados.
 
-### Changed
-- Se creó un nuevo repositorio independiente para aislar y controlar mejor el ciclo CI/CD por PoC.
-- Implementación del despliegue manual via ZIP sin compilación en Azure (`scm-do-build-during-deployment: false`).
+### Corregido
+- Error de autenticación con `azure/login@v2` en GitHub Actions: Se registró una aplicación en Azure Active Directory (`github-cicd-deploy`) y se configuró autenticación federada.
+- Asignación del rol "Colaborador" a la aplicación para habilitar despliegue a través de CI/CD.
 
-### Fixed
-- Error de autenticación resuelto mediante configuración de credenciales federadas (OIDC) entre GitHub Actions y Azure.
-- Se corrigió el login fallido mediante Service Principal al adoptar autenticación federada como mejor práctica.
+### Mejoras
+- Pipeline actualizado para empaquetado manual de dependencias (`.python_packages`) en caso de que `oryx` falle.
+- Separación de repositorio (`jira-azure-poc1.5-webhook`) para mantener trazabilidad por POC.
 
-### Notes
-- Esta PoC marca la transición hacia una arquitectura más escalable y segura para integraciones Jira ↔ Azure.
+---
+
+📅 Fecha: 2025-04-29  
+👤 Responsable: @paulsanchez  
